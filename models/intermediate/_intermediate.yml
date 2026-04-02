@@ -74,6 +74,11 @@ models:
       Grain: one row per part/supplier combination (part_key + supplier_key).
       Used to build dim_parts with aggregated supply metrics.
     columns:
+      - name: part_supplier_key
+        description: Surrogate key generated from part_key and supplier_key.
+        tests:
+          - unique
+          - not_null
       - name: part_key
         description: Foreign key to parts. Part of the composite grain.
         tests:
