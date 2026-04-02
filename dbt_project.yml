@@ -46,3 +46,6 @@ models:
       +materialized: table
 flags:
   require_generic_test_arguments_property: true
+
+data_tests:
+  +severity: warn

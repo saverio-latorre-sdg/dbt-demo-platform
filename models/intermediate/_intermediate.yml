@@ -7,6 +7,11 @@ models:
       Grain: one row per order line (order_key + line_number).
       Used as the primary input for fct_orders.
     columns:
+      - name: order_item_key
+        description: Surrogate key generated from order_key and line_number.
+        tests:
+          - unique
+          - not_null
       - name: order_key
         description: Foreign key to orders. Part of the composite grain.
         tests:
@@ -44,6 +49,10 @@ models:
         description: Tax rate applied to the line item.
       - name: return_flag
         description: Return flag (R, A, N).
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['returned', 'accepted']
       - name: line_status
         description: Line status (O, F).
       - name: ship_date
@@ -65,6 +74,11 @@ models:
       Grain: one row per part/supplier combination (part_key + supplier_key).
       Used to build dim_parts with aggregated supply metrics.
     columns:
+      - name: part_supplier_key
+        description: Surrogate key generated from part_key and supplier_key.
+        tests:
+          - unique
+          - not_null
       - name: part_key
         description: Foreign key to parts. Part of the composite grain.
         tests:
