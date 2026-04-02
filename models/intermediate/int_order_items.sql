@@ -27,7 +27,7 @@ with
                 then 'returned'
                 when li.return_flag = 'A'
                 then 'accepted'
-                else 'unknown'
+                else 'undefined'
             end as return_flag,
             li.line_status,
             li.ship_mode,
