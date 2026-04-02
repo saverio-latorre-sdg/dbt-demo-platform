@@ -7,6 +7,11 @@ models:
       Grain: one row per order line (order_key + line_number).
       Used as the primary input for fct_orders.
     columns:
+      - name: order_item_key
+        description: Surrogate key generated from order_key and line_number.
+        tests:
+          - unique
+          - not_null
       - name: order_key
         description: Foreign key to orders. Part of the composite grain.
         tests:

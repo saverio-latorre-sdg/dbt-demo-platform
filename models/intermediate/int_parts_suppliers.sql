@@ -6,6 +6,10 @@ with
     final as (
 
         select
+            -- surrogate key
+            {{ dbt_utils.generate_surrogate_key(["p.part_key", "ps.supplier_key"]) }}
+            as part_supplier_key,
+            
             -- keys (composite grain: part_key + supplier_key)
             p.part_key,
             ps.supplier_key,

@@ -6,6 +6,10 @@ with
     final as (
 
         select
+            -- surrogate key
+            {{ dbt_utils.generate_surrogate_key(["li.order_key", "li.line_number"]) }}
+            as order_item_key,
+
             -- keys
             li.order_key,
             li.line_number,
