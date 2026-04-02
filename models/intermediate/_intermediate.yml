@@ -44,6 +44,10 @@ models:
         description: Tax rate applied to the line item.
       - name: return_flag
         description: Return flag (R, A, N).
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['returned', 'accepted']
       - name: line_status
         description: Line status (O, F).
       - name: ship_date
