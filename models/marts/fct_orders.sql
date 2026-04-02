@@ -26,7 +26,7 @@ final as (
         -- degenerate dimensions (attributes of the event, no dedicated dim)
         order_status_code,
         order_priority_code,
-        return_flag,
+        -- return_flag,
         line_status,
         ship_mode,
 

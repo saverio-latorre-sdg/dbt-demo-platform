@@ -29,7 +29,11 @@ final as (
         -- degenerate dimensions
         o.status_code           as order_status_code,
         o.priority_code         as order_priority_code,
-        li.return_flag,
+        case 
+            when li.return_flag = 'R' then 'returned'
+            when li.return_flag = 'A' then 'accepted'
+            else 'unknown'
+        end as return_flag,
         li.line_status,
         li.ship_mode,
 
