@@ -10,7 +10,7 @@ sources:
     schema: raw
     config:
       freshness:
-        error_after:  
+        warn_after:  
           count: 24
           period: hour
       loaded_at_field: _loaded_at
