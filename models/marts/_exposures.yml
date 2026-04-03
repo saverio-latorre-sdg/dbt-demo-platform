@@ -1,0 +1,17 @@
+version: 2
+
+exposures:
+  - name: dbt_demo_platform_dashboard
+    type: dashboard
+    maturity: high
+    description: "Dashboard dbt demo platform"
+    
+    url: https://app.hex.tech/sdg_group/app/dbt-demo-platform-dashboard-032tDDd2raEW3Y7yFemklm/latest
+
+    depends_on:
+      - ref('fct_orders')
+      - ref('dim_suppliers')
+
+    owner:
+      name: Saverio La Torre
+      email: saverio.latorre@sdggroup.com
