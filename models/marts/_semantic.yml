@@ -1,0 +1,363 @@
+semantic_models:
+
+  - name: orders
+    description: >
+      Core semantic model built on fct_orders. Grain: one row per order line
+      (order_key + line_number). Central model for all revenue and operations metrics.
+    model: ref('fct_orders')
+
+    entities:
+      - name: order_item
+        type: primary
+        expr: order_item_key
+
+      - name: order
+        type: foreign
+        expr: order_key
+
+      - name: customer
+        type: foreign
+        expr: customer_key
+
+      - name: supplier
+        type: foreign
+        expr: supplier_key
+
+      - name: part
+        type: foreign
+        expr: part_key
+
+    dimensions:
+      # dates
+      - name: order_date
+        type: time
+        type_params:
+          time_granularity: day
+
+      - name: ship_date
+        type: time
+        type_params:
+          time_granularity: day
+
+      - name: receipt_date
+        type: time
+        type_params:
+          time_granularity: day
+
+      # degenerate dimensions
+      - name: order_status_code
+        type: categorical
+        description: "Status of the order: O (open), F (fulfilled), P (in progress)."
+
+      - name: order_priority_code
+        type: categorical
+        description: Priority level of the order.
+
+      - name: return_flag
+        type: categorical
+        description: "Return flag: R (returned), A (accepted), N (none)."
+
+      - name: line_status
+        type: categorical
+        description: "Line status: O (open), F (fulfilled)."
+
+      - name: ship_mode
+        type: categorical
+        description: Shipping mode (AIR, SHIP, TRUCK, RAIL, MAIL, REG AIR, FOB).
+
+    measures:
+      - name: net_revenue
+        description: Sum of net item sales amount (after discount, before tax).
+        agg: sum
+        expr: net_item_sales_amount
+
+      - name: gross_revenue
+        description: Sum of gross item sales amount (after discount and tax).
+        agg: sum
+        expr: gross_item_sales_amount
+
+      - name: total_quantity
+        description: Total quantity of items ordered.
+        agg: sum
+        expr: quantity
+
+      - name: order_count
+        description: Count of distinct orders.
+        agg: count_distinct
+        expr: order_key
+
+      - name: order_item_count
+        description: Count of order line items.
+        agg: count
+        expr: order_item_key
+
+      - name: avg_discount
+        description: Average discount percentage applied.
+        agg: average
+        expr: discount_percentage
+
+      - name: avg_days_to_ship
+        description: Average number of days between order date and ship date.
+        agg: average
+        expr: days_to_ship
+
+      - name: avg_days_in_transit
+        description: Average number of days between ship date and receipt date.
+        agg: average
+        expr: days_in_transit
+
+      - name: extended_price_total
+        description: Total extended price before discounts and taxes.
+        agg: sum
+        expr: extended_price
+
+
+  - name: customers
+    description: >
+      Customer dimension semantic model. Grain: one row per customer.
+      Used to slice order metrics by customer attributes and geography.
+    model: ref('dim_customers')
+
+    entities:
+      - name: customer
+        type: primary
+        expr: customer_key
+
+    dimensions:
+      - name: customer_name
+        type: categorical
+
+      - name: market_segment
+        type: categorical
+        description: Market segment (AUTOMOBILE, BUILDING, FURNITURE, MACHINERY, HOUSEHOLD).
+
+      - name: customer_nation
+        type: categorical
+        description: Nation the customer belongs to.
+
+      - name: customer_region
+        type: categorical
+        description: Region the customer belongs to (AFRICA, AMERICA, ASIA, EUROPE, MIDDLE EAST).
+
+    measures:
+      - name: customer_count
+        description: Count of distinct customers.
+        agg: count
+        expr: customer_key
+
+      - name: avg_customer_balance
+        description: Average account balance across customers.
+        agg: average
+        expr: customer_account_balance
+
+
+  - name: suppliers
+    description: >
+      Supplier dimension semantic model. Grain: one row per supplier.
+      Used to slice order metrics by supplier attributes and geography.
+    model: ref('dim_suppliers')
+
+    entities:
+      - name: supplier
+        type: primary
+        expr: supplier_key
+
+    dimensions:
+      - name: supplier_name
+        type: categorical
+
+      - name: supplier_nation
+        type: categorical
+        description: Nation the supplier belongs to.
+
+      - name: supplier_region
+        type: categorical
+        description: Region the supplier belongs to.
+
+    measures:
+      - name: supplier_count
+        description: Count of distinct suppliers.
+        agg: count
+        expr: supplier_key
+
+      - name: avg_supplier_balance
+        description: Average account balance across suppliers.
+        agg: average
+        expr: supplier_account_balance
+
+
+  - name: parts
+    description: >
+      Parts dimension semantic model. Grain: one row per part.
+      Used to slice order metrics by part attributes and supply info.
+    model: ref('dim_parts')
+
+    entities:
+      - name: part
+        type: primary
+        expr: part_key
+
+    dimensions:
+      - name: part_name
+        type: categorical
+
+      - name: manufacturer
+        type: categorical
+
+      - name: brand
+        type: categorical
+
+      - name: part_type
+        type: categorical
+
+      - name: part_size
+        type: categorical
+
+    measures:
+      - name: part_count
+        description: Count of distinct parts.
+        agg: count
+        expr: part_key
+
+      - name: avg_retail_price
+        description: Average retail price across parts.
+        agg: average
+        expr: retail_price
+
+      - name: avg_supply_cost
+        description: Average supply cost across parts.
+        agg: average
+        expr: avg_supply_cost
+
+      - name: avg_gross_margin_percentage
+        description: Average gross margin percentage across parts.
+        agg: average
+        expr: avg_gross_margin_percentage
+
+
+metrics:
+
+  # --- REVENUE ---
+
+  - name: total_net_revenue
+    description: Total revenue after discounts, before taxes.
+    label: Total Net Revenue
+    type: simple
+    type_params:
+      measure:
+        name: net_revenue
+        fill_nulls_with: 0
+
+  - name: total_gross_revenue
+    description: Total revenue after discounts and taxes.
+    label: Total Gross Revenue
+    type: simple
+    type_params:
+      measure:
+        name: gross_revenue
+        fill_nulls_with: 0
+
+  - name: avg_net_revenue_per_order
+    description: Average net revenue per distinct order.
+    label: Avg Net Revenue per Order
+    type: derived
+    type_params:
+      expr: total_net_revenue / total_orders
+      metrics:
+        - name: total_net_revenue
+        - name: total_orders
+
+  # --- VOLUME ---
+
+  - name: total_orders
+    description: Total number of distinct orders placed.
+    label: Total Orders
+    type: simple
+    type_params:
+      measure:
+        name: order_count
+        fill_nulls_with: 0
+
+  - name: total_order_items
+    description: Total number of order line items.
+    label: Total Order Items
+    type: simple
+    type_params:
+      measure:
+        name: order_item_count
+        fill_nulls_with: 0
+
+  - name: total_quantity_ordered
+    description: Total quantity of items ordered.
+    label: Total Quantity Ordered
+    type: simple
+    type_params:
+      measure:
+        name: total_quantity
+        fill_nulls_with: 0
+
+  # --- DISCOUNT ---
+
+  - name: average_discount
+    description: Average discount percentage applied across all order lines.
+    label: Average Discount %
+    type: simple
+    type_params:
+      measure:
+        name: avg_discount
+
+  # --- OPERATIONS ---
+
+  - name: average_days_to_ship
+    description: Average number of days from order placement to shipment.
+    label: Avg Days to Ship
+    type: simple
+    type_params:
+      measure:
+        name: avg_days_to_ship
+
+  - name: average_days_in_transit
+    description: Average number of days from shipment to receipt.
+    label: Avg Days in Transit
+    type: simple
+    type_params:
+      measure:
+        name: avg_days_in_transit
+
+  # --- SUPPLY CHAIN ---
+
+  - name: avg_part_gross_margin
+    description: Average gross margin percentage across all parts.
+    label: Avg Part Gross Margin %
+    type: simple
+    type_params:
+      measure:
+        name: avg_gross_margin_percentage
+
+  - name: avg_part_retail_price
+    description: Average retail price across all parts.
+    label: Avg Part Retail Price
+    type: simple
+    type_params:
+      measure:
+        name: avg_retail_price
+
+  # --- CUSTOMERS ---
+
+  - name: total_customers
+    description: Total number of distinct customers.
+    label: Total Customers
+    type: simple
+    type_params:
+      measure:
+        name: customer_count
+
+  # --- SUPPLIERS ---
+
+  - name: total_suppliers
+    description: Total number of distinct suppliers.
+    label: Total Suppliers
+    type: simple
+    type_params:
+      measure:
+        name: supplier_count
