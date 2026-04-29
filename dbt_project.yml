@@ -44,6 +44,9 @@ models:
     marts:
       +schema: marts
       +materialized: table
+    canvas:
+      +schema: canvas
+      +materialized: view
 flags:
   require_generic_test_arguments_property: true
 
